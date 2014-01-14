@@ -21,14 +21,17 @@ import unittest
 BASEURL = "http://127.0.0.1:8080"
 
 class TestYourWebserver(unittest.TestCase):
+
     def setUp(self,baseurl=BASEURL):
         """do nothing"""
         self.baseurl = baseurl
+
 
     def test_get_root(self):
         url = self.baseurl + "/"
         req = urllib2.urlopen(url, None, 3)
         self.assertTrue( req.getcode()  == 200 , "200 OK Not FOUND!")
+
 
     def test_get_deep(self):
         url = self.baseurl + "/deep/"
@@ -41,6 +44,7 @@ class TestYourWebserver(unittest.TestCase):
         req = urllib2.urlopen(url, None, 3)
         self.assertTrue( req.getcode()  == 200 , "200 OK Not FOUND!")
 
+
     def test_get_404(self):
         url = self.baseurl + "/do-not-implement-this-page-it-is-not-found"
         try:
@@ -50,6 +54,7 @@ class TestYourWebserver(unittest.TestCase):
             self.assertTrue( e.getcode()  == 404 , ("404 Not FOUND! %d" % e.getcode()))
         else:
             self.assertTrue( False, "Another Error was thrown!")
+
 
     def test_get_group(self):
         """ how secure are you? """
@@ -62,11 +67,13 @@ class TestYourWebserver(unittest.TestCase):
         else:
             self.assertTrue( false, "Another Error was thrown!")
         
+
     def test_css(self):
         url = self.baseurl + "/base.css"
         req = urllib2.urlopen(url, None, 3)
         self.assertTrue( req.getcode()  == 200 , "200 OK Not FOUND!")
         self.assertTrue( req.info().gettype() == "text/css", ("Bad mimetype for css! %s" % req.info().gettype()))
+
 
     def test_html(self):
         url = self.baseurl + "/index.html"
@@ -75,5 +82,16 @@ class TestYourWebserver(unittest.TestCase):
         self.assertTrue( req.info().gettype() == "text/html", ("Bad mimetype for html! %s" % req.info().gettype()))
 
 
+    def test_extensionless_file(self):
+        url = self.baseurl + "/extensionless-file"
+        try:
+            req = urllib2.urlopen(url, None, 3)
+            self.assertTrue( False, "Should have thrown an HTTP Error! [%d]" % req.getcode())
+        except urllib2.HTTPError as e:
+            self.assertTrue( e.getcode()  == 404 , ("404 Not FOUND! %d" % e.getcode()))
+        else:
+            self.assertTrue( false, "Another Error was thrown!")
+
+				
 if __name__ == '__main__':
     unittest.main()

@@ -1,4 +1,4 @@
-import sys, urllib, SocketServer
+import os, sys, urllib, SocketServer
 # coding: utf-8
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
@@ -27,37 +27,55 @@ import sys, urllib, SocketServer
 # try: curl -v -X GET http://127.0.0.1:8080/
 
 class MyWebServer(SocketServer.BaseRequestHandler):
-    
+
   def handle(self):
     self.data = self.request.recv(1024).strip()
-    #
-    print self.client_address[0]
-    print ("Got a request of: %s\n" % self.data)
 
-    parts = self.data.split(' ')
-    print parts[0]
-    print parts[1]
-    print parts[2]
+    parts = self.data.split()
+    url = parts[1]
 
-    if ('/' in parts[1]):
-      #if (parts[1].length == 1):
+    self.header = ""
+    self.body = ""
 
-      print "Found"
+    if (url[0] == '/'):
+      if (len(url) == 1):
+        self.getFile("/index.html")
+      elif (len(url) > 1):
+        if (url[-1] == '/'):
+          self.getFile(url + "index.html")
+        else:
+          self.getFile(url)
+
+    self.request.sendall(self.header + "\n")
+    self.request.sendall(self.body)
+
+
+  def filetype(self, ext):
+    if ext == ".css":
+      return "Content-Type: text/css"
+    elif ext == ".html":
+      return "Content-Type: text/html"
     else:
-      error(request, "Not found" + parts[1])
+      raise IOError
 
 
-    # f = open('base.css', 'r')
-    # for line in f:
-    #   self.request.sendall(line)
-    # f.close()
-    self.request.sendall("Test\n")
-    #self.request.sendall("OK")
+  def getFile(self, url):
+    root = os.getcwd() + "/www"
+    filename = root + url
+    try:
+      f = open(filename, "r")
+      mimetype = self.filetype(os.path.splitext(filename)[1])
+      self.header += "HTTP/1.1 200\n"
+      self.header += mimetype + "\n"
+      self.body += f.read()
+      f.close()
+    except IOError:
+      self.header += "HTTP/1.1 404\n"
+      self.body += "Page not found\n"
 
-  #def parse (self, request)
 
-  def error(self, request, msg):
-    print "Bad request ", msg
+  def error(self):
+    print "Bad request "
 
 
 if __name__ == "__main__":
