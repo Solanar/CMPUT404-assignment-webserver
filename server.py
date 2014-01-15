@@ -1,7 +1,7 @@
 import os, sys, urllib, SocketServer
 # coding: utf-8
 
-# Copyright 2013 Abram Hindle, Eddie Antonio Santos
+# Copyright 2013 Abram Hindle, Eddie Antonio Santos, Andrew Charles
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -37,10 +37,10 @@ class MyWebServer(SocketServer.BaseRequestHandler):
     self.header = ""
     self.body = ""
 
-    if (url[0] == '/'):
-      if (len(url) == 1):
-        self.getFile("/index.html")
-      elif (len(url) > 1):
+    if url == '/':
+      self.getFile("/index.html")
+    else:
+      if (url[0] == '/' and (len(url) > 1)):
         if (url[-1] == '/'):
           self.getFile(url + "index.html")
         else:
@@ -61,10 +61,13 @@ class MyWebServer(SocketServer.BaseRequestHandler):
 
   def getFile(self, url):
     root = os.getcwd() + "/www"
-    filename = root + url
+    relfilename = root + url
+    absfilename = os.path.normpath(relfilename)
     try:
-      f = open(filename, "r")
-      mimetype = self.filetype(os.path.splitext(filename)[1])
+      if not absfilename.startswith(root):
+        raise IOError
+      f = open(absfilename, "r")
+      mimetype = self.filetype(os.path.splitext(absfilename)[1])
       self.header += "HTTP/1.1 200\n"
       self.header += mimetype + "\n"
       self.body += f.read()
