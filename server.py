@@ -32,6 +32,8 @@ class MyWebServer(SocketServer.BaseRequestHandler):
     self.data = self.request.recv(1024).strip()
 
     parts = self.data.split()
+    if not parts[0] == "GET":
+      return
     url = parts[1]
 
     self.header = ""
