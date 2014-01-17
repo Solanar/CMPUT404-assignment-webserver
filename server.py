@@ -65,6 +65,11 @@ class MyWebServer(SocketServer.BaseRequestHandler):
     root = os.getcwd() + "/www"
     relfilename = root + url
     absfilename = os.path.normpath(relfilename)
+    if os.path.isdir(absfilename):
+      self.header += "HTTP/1.1 301\n"
+      self.header += "Location: " + url + "/\n"
+      self.body += "Page has moved\n"
+      return  	
     try:
       if not absfilename.startswith(root):
         raise IOError
